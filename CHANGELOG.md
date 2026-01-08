@@ -1,31 +1,25 @@
 # Changelog
 
-## v0.0.5 (2026-01-08)
+## v0.1.0 (2026-01-08)
 
-### 📚 Documentation
+### 🚀 Major Release
 
-- **API Reference**: Expanded `README.md` with detailed API documentation, including path, usage examples, and parameter tables for all actions.
+- **Initial Stable Release**: First official release with complete feature set.
 
-## v0.0.4 (2026-01-08)
+### ✨ Features
 
-### 🚀 Features
-
-- **Localization**: Added support for internationalization. Error messages are now in English by default and can be translated using `better-auth-localization`.
-- **Better Error Messages**: Updated error codes to follow `better-auth` official style (short, direct, lowercase).
-
-### 📦 Chore
-
-- Updated `README.md` with detailed installation and localization guides.
-- Published to npm.
-
-## v0.0.3
-
-- Initial beta release with localization fixes.
-
-## v0.0.1
-
-- Initial release with core admin features:
-  - `ban-user` / `unban-user`
-  - `set-user-password`
-  - `revoke-session`
-
+- **Control Inversion**: Complete control over permission logic via `checkPermission` hook.
+- **User Management**:
+  - Ban/Unban users with reasons and expiration.
+  - Set user passwords securely.
+- **Session Control**:
+  - List user sessions.
+  - Revoke specific sessions.
+  - Revoke all sessions for a user.
+- **Security**:
+  - Automatic session revocation when a user is banned.
+  - Prevention of self-banning.
+- **Developer Experience**:
+  - Full TypeScript support.
+  - Comprehensive API documentation.
+  - Localization support for error messages.

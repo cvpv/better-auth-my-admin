@@ -1,0 +1,17 @@
+{
+    // markdownlint-cli2 配置文件
+    // 文档：https://github.com/DavidAnson/markdownlint-cli2
+  
+    // 忽略的文件和目录
+    "ignores": [
+      "**/CHANGELOG.md",
+      "**/README.md",
+      "**/LICENSE"
+    ],
+    // 规则配置
+    "config": {
+      // 默认规则
+      "default": true
+    }
+  }
+  

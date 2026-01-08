@@ -1,8 +1,28 @@
+<div align="center">
+
 # Better Auth My Admin
 
-A flexible, unopinionated Admin & RBAC plugin for [Better Auth](https://github.com/better-auth/better-auth).
+<a href="https://www.npmjs.com/package/better-auth-my-admin"><img alt="NPM Version" src="https://img.shields.io/npm/v/better-auth-my-admin?style=flat-square&logo=npm"></a>
+<a href="https://github.com/cvpv/better-auth-my-admin/blob/main/LICENSE.md"><img alt="License" src="https://img.shields.io/npm/l/better-auth-my-admin?style=flat-square"></a>
 
-Unlike the official admin plugin which enforces a strict role-based structure, `better-auth-my-admin` gives you **complete control inversion**. You define the permission logic via a simple callback, allowing you to implement any authorization strategy (RBAC, ABAC, etc.) with ease.
+<p>
+  <strong>A flexible, unopinionated Admin & RBAC plugin for <a href="https://better-auth.com">Better Auth</a>.</strong>
+</p>
+<p>
+  Unlock the full potential of your admin system with absolute freedom.
+  <br />
+  Break free from rigid role structures and define your own rules.
+</p>
+
+</div>
+
+> [!CAUTION]
+> **Total Control, Total Responsibility**
+> 
+> This plugin implements **Control Inversion** for permissions. Unlike the official admin plugin, it makes **ZERO assumptions** about your role system.
+> 
+> You simply provide a `checkPermission` callback, and the plugin delegates all authorization decisions to it.
+> **You are solely responsible for ensuring your permission logic is secure and handles all edge cases.**
 
 ## Features
 
@@ -47,7 +67,6 @@ export const auth = betterAuth({
         if (action === "ban-user" && session.user.isSuperAdmin) return true;
 
         // Return false to deny (triggers 403)
-        // Or throw custom error: throw new APIError("FORBIDDEN", { message: "..." })
         return false;
       }
     })
@@ -57,30 +76,27 @@ export const auth = betterAuth({
 
 ### 2. Update Database Schema
 
-This plugin adds `banned`, `banReason`, and `banExpires` fields to the User model.
+Run the migration or generate the schema to add the necessary fields and tables to the database.
 
-**Prisma:**
-
-Add fields to your `schema.prisma`:
-
-```prisma
-model User {
-  // ... existing fields
-  banned            Boolean?
-  banReason         String?
-  banExpires        DateTime?
-}
-```
-
-Then run migration:
 ```bash
-npx prisma migrate dev --name add_admin_fields
+npx @better-auth/cli migrate
 ```
 
-**Drizzle / Others:**
-(Run `better-auth migrate` or equivalent to update schema)
+or
 
-## Usage on Client
+```bash
+npx @better-auth/cli generate
+```
+
+This plugin adds the following fields to the `user` table:
+
+| Field Name | Type | Description |
+| :--- | :--- | :--- |
+| `banned` | `Boolean` | Indicates whether the user is banned. |
+| `banReason` | `String` | The reason for the user's ban. |
+| `banExpires` | `DateTime` | The date when the user's ban will expire. |
+
+### 3. Add the client plugin
 
 ```typescript
 import { createAuthClient } from "better-auth/react";
@@ -89,17 +105,37 @@ import { myAdminClient } from "better-auth-my-admin";
 const authClient = createAuthClient({
   plugins: [myAdminClient()]
 });
+```
 
-// Example: Ban a user
+## Usage
+
+### Client Side
+
+You can use the `myAdmin` property on the auth client to perform admin actions. The client is fully typed.
+
+```typescript
 await authClient.myAdmin.banUser({
-  userId: "target-user-id",
-  banReason: "Violation of terms"
+    userId: "target-user-id",
+    banReason: "Violation of terms"
 });
+```
 
-// Example: Set user password
-await authClient.myAdmin.setUserPassword({
-  userId: "target-user-id",
-  newPassword: "new-secure-password"
+### Server Side
+
+You can also call admin actions directly from your server-side code (e.g. in API routes or Server Actions) using `auth.api`.
+
+> **Note**: When calling from the server, you must pass the request headers to ensure the session context is correctly resolved.
+
+```typescript
+import { auth } from "@/lib/auth"; // Your auth instance
+import { headers } from "next/headers"; // Example for Next.js
+
+await auth.api.banUser({
+    body: {
+        userId: "target-user-id",
+        banReason: "Violation of terms"
+    },
+    headers: await headers()
 });
 ```
 
@@ -109,105 +145,234 @@ await authClient.myAdmin.setUserPassword({
 
 Changes the password of a user.
 
-**Path:** `/my-admin/set-user-password`
+- **Path**: `/my-admin/set-user-password`
+- **Method**: `POST`
 
-```typescript
-const { data, error } = await authClient.myAdmin.setUserPassword({
-    userId: 'user-id', // required
-    newPassword: 'new-password', // required
+#### Parameters
+
+```ts
+type setUserPassword = {
+    /**
+     * The user id which you want to set the password for.
+     */
+    userId: string;
+    /**
+     * The new password.
+     */
+    newPassword: string;
+}
+```
+
+#### Examples
+
+**Client**
+```ts
+await authClient.myAdmin.setUserPassword({
+    userId: 'user-id',
+    newPassword: 'new-password'
 });
 ```
 
-| Prop | Description | Type |
-| :--- | :--- | :--- |
-| `userId` | The user id which you want to set the password for. | `string` |
-| `newPassword` | The new password. | `string` |
+**Server**
+```ts
+await auth.api.setUserPassword({
+    body: {
+        userId: 'user-id',
+        newPassword: 'new-password'
+    },
+    headers: await headers()
+});
+```
 
 ### Ban User
 
 Bans a user, preventing them from signing in and revokes all of their existing sessions.
 
-**Path:** `/my-admin/ban-user`
+- **Path**: `/my-admin/ban-user`
+- **Method**: `POST`
 
-```typescript
-const { data, error } = await authClient.myAdmin.banUser({
-    userId: 'user-id', // required
-    banReason: 'Spamming', // optional
-    banExpiresIn: 60 * 60 * 24 * 7 // optional (seconds)
+#### Parameters
+
+```ts
+type banUser = {
+    /**
+     * The user id which you want to ban.
+     */
+    userId: string;
+    /**
+     * The reason for the ban.
+     */
+    banReason?: string;
+    /**
+     * The number of seconds until the ban expires. If not provided, the ban will never expire.
+     */
+    banExpiresIn?: number;
+}
+```
+
+#### Examples
+
+**Client**
+```ts
+await authClient.myAdmin.banUser({
+    userId: 'user-id',
+    banReason: 'Spamming',
+    banExpiresIn: 604800 // 1 week
 });
 ```
 
-| Prop | Description | Type |
-| :--- | :--- | :--- |
-| `userId` | The user id which you want to ban. | `string` |
-| `banReason` | The reason for the ban. | `string` |
-| `banExpiresIn` | The number of seconds until the ban expires. If not provided, the ban will never expire. | `number` |
+**Server**
+```ts
+await auth.api.banUser({
+    body: {
+        userId: 'user-id',
+        banReason: 'Spamming'
+    },
+    headers: await headers()
+});
+```
 
 ### Unban User
 
 Removes the ban from a user, allowing them to sign in again.
 
-**Path:** `/my-admin/unban-user`
+- **Path**: `/my-admin/unban-user`
+- **Method**: `POST`
 
-```typescript
-const { data, error } = await authClient.myAdmin.unbanUser({
-    userId: 'user-id', // required
+#### Parameters
+
+```ts
+type unbanUser = {
+    /**
+     * The user id which you want to unban.
+     */
+    userId: string;
+}
+```
+
+#### Examples
+
+**Client**
+```ts
+await authClient.myAdmin.unbanUser({
+    userId: 'user-id'
 });
 ```
 
-| Prop | Description | Type |
-| :--- | :--- | :--- |
-| `userId` | The user id which you want to unban. | `string` |
+**Server**
+```ts
+await auth.api.unbanUser({
+    body: { userId: 'user-id' },
+    headers: await headers()
+});
+```
 
 ### List User Sessions
 
 Lists all active sessions for a specific user.
 
-**Path:** `/my-admin/list-user-sessions`
+- **Path**: `/my-admin/list-user-sessions`
+- **Method**: `POST`
 
-```typescript
-const { data, error } = await authClient.myAdmin.listUserSessions({
-    userId: 'user-id', // required
+#### Parameters
+
+```ts
+type listUserSessions = {
+    /**
+     * The user id to list sessions for.
+     */
+    userId: string;
+}
+```
+
+#### Examples
+
+**Client**
+```ts
+const { data } = await authClient.myAdmin.listUserSessions({
+    userId: 'user-id'
 });
 ```
 
-| Prop | Description | Type |
-| :--- | :--- | :--- |
-| `userId` | The user id to list sessions for. | `string` |
+**Server**
+```ts
+const sessions = await auth.api.listUserSessions({
+    body: { userId: 'user-id' },
+    headers: await headers()
+});
+```
 
 ### Revoke User Session
 
 Revokes a specific session for a user.
 
-**Path:** `/my-admin/revoke-user-session`
+- **Path**: `/my-admin/revoke-user-session`
+- **Method**: `POST`
 
-```typescript
-const { data, error } = await authClient.myAdmin.revokeUserSession({
-    sessionToken: 'session-token', // required
+#### Parameters
+
+```ts
+type revokeUserSession = {
+    /**
+     * The session token which you want to revoke.
+     */
+    sessionToken: string;
+}
+```
+
+#### Examples
+
+**Client**
+```ts
+await authClient.myAdmin.revokeUserSession({
+    sessionToken: 'session-token'
 });
 ```
 
-| Prop | Description | Type |
-| :--- | :--- | :--- |
-| `sessionToken` | The session token which you want to revoke. | `string` |
+**Server**
+```ts
+await auth.api.revokeUserSession({
+    body: { sessionToken: 'session-token' },
+    headers: await headers()
+});
+```
 
 ### Revoke User Sessions
 
 Revokes all sessions for a user.
 
-**Path:** `/my-admin/revoke-user-sessions`
+- **Path**: `/my-admin/revoke-user-sessions`
+- **Method**: `POST`
 
-```typescript
-const { data, error } = await authClient.myAdmin.revokeUserSessions({
-    userId: 'user-id', // required
+#### Parameters
+
+```ts
+type revokeUserSessions = {
+    /**
+     * The user id which you want to revoke all sessions for.
+     */
+    userId: string;
+}
+```
+
+#### Examples
+
+**Client**
+```ts
+await authClient.myAdmin.revokeUserSessions({
+    userId: 'user-id'
 });
 ```
 
-| Prop | Description | Type |
-| :--- | :--- | :--- |
-| `userId` | The user id which you want to revoke all sessions for. | `string` |
+**Server**
+```ts
+await auth.api.revokeUserSessions({
+    body: { userId: 'user-id' },
+    headers: await headers()
+});
+```
 
-### Localization
+## Localization
 
 To translate error messages (e.g. to Chinese), use `better-auth-localization`:
 
