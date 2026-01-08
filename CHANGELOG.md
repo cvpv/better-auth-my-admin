@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.5 (2026-01-08)
+
+### 📚 Documentation
+
+- **API Reference**: Expanded `README.md` with detailed API documentation, including path, usage examples, and parameter tables for all actions.
+
 ## v0.0.4 (2026-01-08)
 
 ### 🚀 Features

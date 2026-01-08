@@ -73,7 +73,6 @@ model User {
 ```
 
 Then run migration:
-
 ```bash
 npx prisma migrate dev --name add_admin_fields
 ```
@@ -106,16 +105,107 @@ await authClient.myAdmin.setUserPassword({
 
 ## API Reference
 
-### Actions
+### Set User Password
 
-The `checkPermission` callback receives an `action` string. Available actions:
+Changes the password of a user.
 
-- `set-user-password`
-- `ban-user`
-- `unban-user`
-- `list-user-sessions`
-- `revoke-user-session`
-- `revoke-user-sessions`
+**Path:** `/my-admin/set-user-password`
+
+```typescript
+const { data, error } = await authClient.myAdmin.setUserPassword({
+    userId: 'user-id', // required
+    newPassword: 'new-password', // required
+});
+```
+
+| Prop | Description | Type |
+| :--- | :--- | :--- |
+| `userId` | The user id which you want to set the password for. | `string` |
+| `newPassword` | The new password. | `string` |
+
+### Ban User
+
+Bans a user, preventing them from signing in and revokes all of their existing sessions.
+
+**Path:** `/my-admin/ban-user`
+
+```typescript
+const { data, error } = await authClient.myAdmin.banUser({
+    userId: 'user-id', // required
+    banReason: 'Spamming', // optional
+    banExpiresIn: 60 * 60 * 24 * 7 // optional (seconds)
+});
+```
+
+| Prop | Description | Type |
+| :--- | :--- | :--- |
+| `userId` | The user id which you want to ban. | `string` |
+| `banReason` | The reason for the ban. | `string` |
+| `banExpiresIn` | The number of seconds until the ban expires. If not provided, the ban will never expire. | `number` |
+
+### Unban User
+
+Removes the ban from a user, allowing them to sign in again.
+
+**Path:** `/my-admin/unban-user`
+
+```typescript
+const { data, error } = await authClient.myAdmin.unbanUser({
+    userId: 'user-id', // required
+});
+```
+
+| Prop | Description | Type |
+| :--- | :--- | :--- |
+| `userId` | The user id which you want to unban. | `string` |
+
+### List User Sessions
+
+Lists all active sessions for a specific user.
+
+**Path:** `/my-admin/list-user-sessions`
+
+```typescript
+const { data, error } = await authClient.myAdmin.listUserSessions({
+    userId: 'user-id', // required
+});
+```
+
+| Prop | Description | Type |
+| :--- | :--- | :--- |
+| `userId` | The user id to list sessions for. | `string` |
+
+### Revoke User Session
+
+Revokes a specific session for a user.
+
+**Path:** `/my-admin/revoke-user-session`
+
+```typescript
+const { data, error } = await authClient.myAdmin.revokeUserSession({
+    sessionToken: 'session-token', // required
+});
+```
+
+| Prop | Description | Type |
+| :--- | :--- | :--- |
+| `sessionToken` | The session token which you want to revoke. | `string` |
+
+### Revoke User Sessions
+
+Revokes all sessions for a user.
+
+**Path:** `/my-admin/revoke-user-sessions`
+
+```typescript
+const { data, error } = await authClient.myAdmin.revokeUserSessions({
+    userId: 'user-id', // required
+});
+```
+
+| Prop | Description | Type |
+| :--- | :--- | :--- |
+| `userId` | The user id which you want to revoke all sessions for. | `string` |
 
 ### Localization
 

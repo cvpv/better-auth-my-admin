@@ -1,6 +1,6 @@
 {
   "name": "better-auth-my-admin",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A flexible RBAC admin plugin for Better Auth with complete control inversion.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -34,8 +34,5 @@
     "typescript": "^5.0.0",
     "vitest": "^2.0.0",
     "zod": "^3.0.0"
-  },
-  "dependencies": {
-    "better-auth-my-admin": "^0.0.1"
   }
 }
