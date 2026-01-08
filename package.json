@@ -1,0 +1,41 @@
+{
+  "name": "better-auth-my-admin",
+  "version": "0.0.3",
+  "description": "A flexible RBAC admin plugin for Better Auth with complete control inversion.",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "test": "vitest",
+    "lint": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "better-auth",
+    "plugin",
+    "admin",
+    "rbac",
+    "authorization"
+  ],
+  "files": [
+    "dist"
+  ],
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "better-auth": "^1.1.0",
+    "zod": "^3.0.0"
+  },
+  "devDependencies": {
+    "better-auth": "^1.1.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^2.0.0",
+    "zod": "^3.0.0"
+  },
+  "dependencies": {
+    "better-auth-my-admin": "^0.0.1"
+  }
+}
